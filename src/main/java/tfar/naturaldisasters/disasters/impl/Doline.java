@@ -1,39 +1,24 @@
-package tfar.naturaldisasters.disasters;
+package tfar.naturaldisasters.disasters.impl;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.util.text.StringTextComponent;
+import tfar.naturaldisasters.disasters.Disaster;
 
 import java.util.Random;
 
-public class Doline implements Disaster {
+public class Doline extends Disaster {
 
-    private boolean running;
-    private int time;
     private BlockPos initial;
 
-    @Override
-    public boolean isRunning() {
-        return running;
+    public Doline() {
+        super(new StringTextComponent("Doline"));
     }
-
-    @Override
-    public void start() {
-        Disaster.super.start();
-        time = 0;
-    }
-
-    @Override
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-
 
     //make hole underneath player, then deactivate
     @Override
     public void run(PlayerEntity player) {
+        super.run(player);
         int stage = time / 5;
         if (time == 0) {
             initial = player.getPosition();
@@ -47,17 +32,14 @@ public class Doline implements Disaster {
                 }
             }
         }
-
         if (stage > 30) {
-            end();
+            end(player);
         }
-
         time++;
     }
 
-    //pick random number between -r and +r
-    private static int pickRandomNumber(Random random,int r) {
-        int i = random.nextInt(2 * r + 1) - r;//r = 2; -2,-1,0,1,2
-        return i;
+    @Override
+    public int getTimeLimit() {
+        return 30 * 5;
     }
 }

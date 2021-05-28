@@ -1,30 +1,25 @@
-package tfar.naturaldisasters.disasters;
+package tfar.naturaldisasters.disasters.impl;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraft.world.server.ServerWorld;
+import tfar.naturaldisasters.disasters.Disaster;
 
 import java.util.Random;
 
-public class AcidRain implements Disaster {
+public class AcidRain extends Disaster {
 
-    private boolean running;
-
-    @Override
-    public boolean isRunning() {
-        return running;
-    }
-
-    @Override
-    public void setRunning(boolean running) {
-        this.running = running;
+    public AcidRain() {
+        super(new StringTextComponent("Acid Rain"));
     }
 
     @Override
     public void run(PlayerEntity player) {
+        super.run(player);
         //remove 10 random blocks in a 40 block radius around the player evey minute
         long time = player.world.getGameTime();
         Random rand = player.getRNG();
@@ -44,11 +39,6 @@ public class AcidRain implements Disaster {
                 }
             }
         }
-    }
-
-    //pick random number between -r and +r
-    private static int pickRandomNumber(Random random,int r) {
-        int i = random.nextInt(2 * r + 1) - r;//r = 2; -2,-1,0,1,2
-        return i;
+        checkTime(player);
     }
 }

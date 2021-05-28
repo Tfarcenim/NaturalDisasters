@@ -1,40 +1,43 @@
-package tfar.naturaldisasters.disasters;
+package tfar.naturaldisasters.disasters.impl;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.item.FallingBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.SmallFireballEntity;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ITag;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import tfar.naturaldisasters.NaturalDisasters;
+import tfar.naturaldisasters.disasters.Disaster;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class Hail implements Disaster {
-
-    private boolean running;
-
-    @Override
-    public boolean isRunning() {
-        return running;
+public class Drought extends Disaster {
+    public Drought() {
+        super(new StringTextComponent("Drought"));
     }
 
-    @Override
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
+    // "dries out"
+    //fill ~ ~ ~ ~16 ~96 ~16 minecraft:air replace #2mal3:nadi/drought_remove
+    //fill ~ ~ ~ ~16 ~96 ~16 minecraft:dead_bush replace #minecraft:flowers
+    //fill ~ ~ ~ ~16 ~96 ~16 minecraft:sand replace minecraft:grass_block
+    //fill ~ ~ ~ ~16 ~96 ~16 minecraft:sandstone replace minecraft:dirt
+    //fill ~ ~ ~ ~16 ~96 ~16 minecraft:sandstone replace minecraft:coarse_dirt
 
-    //execute as @e[type=minecraft:area_effect_cloud,tag=nadi.anchor] at @s run summon falling_block ~ 255 ~ {BlockState: {Name: "minecraft:ice"}, Time: 1, HurtEntities: 1b, FallHurtMax: 40, FallHurtAmount: 0.03f}
+    //fill ~ ~96 ~ ~16 ~160 ~16 minecraft:air replace #2mal3:nadi/drought_remove
+    //fill ~ ~96 ~ ~16 ~160 ~16 minecraft:dead_bush replace #minecraft:flowers
+    //fill ~ ~96 ~ ~16 ~160 ~16 minecraft:sand replace minecraft:grass_block
+    //fill ~ ~96 ~ ~16 ~160 ~16 minecraft:sandstone replace minecraft:dirt
+    //fill ~ ~96 ~ ~16 ~160 ~16 minecraft:sandstone replace minecraft:coarse_dirt;
 
 
     @Override
     public void run(PlayerEntity player) {
+        super.run(player);
         long time = player.world.getGameTime();
         Random rand = player.getRNG();
         if (time % 20 == 0) {
@@ -42,22 +45,22 @@ public class Hail implements Disaster {
             ((ServerWorld)player.world).setWeather(10000000, 0, false, false);
         }
 
-        //summon falling blocks of  ice that hurt
-        for (int i = 0; i < 1;i++) {
+        //pick a couple blocks at random to dehydrate every tick
+        for (int i = 0; i < 20;i++) {
             int x = (int) (player.getPosX() + pickRandomNumber(rand,32));
-            int y = 255;
+            int y = (int) (player.getPosY() + pickRandomNumber(rand,32));
             int z = (int) (player.getPosZ() + pickRandomNumber(rand,32));
 
-            FallingBlockEntity hail = new FallingBlockEntity(player.world,x,y,z,Blocks.ICE.getDefaultState());
+            BlockPos pos = new BlockPos(x,y,z);
 
-            //prevent removal
-            hail.fallTime = 1;
-            //make it hurt
-            hail.setHurtEntities(true);
-            //a lot
-            ObfuscationReflectionHelper.setPrivateValue(FallingBlockEntity.class,hail,40,"field_145816_i");
-            player.world.addEntity(hail);
+            BlockState state = player.world.getBlockState(pos);
+
+            BlockState newState = convert(state.getBlock());
+            if (newState != null) {
+                player.world.setBlockState(pos,newState);
+            }
         }
+        checkTime(player);
     }
 
     //should use block ingredients but effort
@@ -87,13 +90,5 @@ public class Hail implements Disaster {
             }
         }
         return null;
-    }
-
-
-
-    //pick random number between -r and +r
-    private static int pickRandomNumber(Random random,int r) {
-        int i = random.nextInt(2 * r + 1) - r;//r = 2; -2,-1,0,1,2
-        return i;
     }
 }

@@ -10,6 +10,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.Mod;
 import tfar.naturaldisasters.disasters.*;
+import tfar.naturaldisasters.disasters.impl.*;
 
 import java.util.*;
 
@@ -54,6 +55,10 @@ public class NaturalDisasters {
         PlayerEntity player = event.player;
         if (!player.world.isRemote) {
             if (event.phase == TickEvent.Phase.START) {
+                //for testing purposes only
+                if (player.world.getGameTime() % 1200 == 0) {
+                    toggleRandomDisaster(player);
+                }
             } else {
                 //run the disasters
                 List<Disaster> disasters = activeDisasters.get(player.getGameProfile().getId());
@@ -66,6 +71,6 @@ public class NaturalDisasters {
     public static void toggleRandomDisaster(PlayerEntity player) {
         UUID uuid = player.getGameProfile().getId();
         List<Disaster> disasters = activeDisasters.get(uuid);
-        disasters.get(player.getRNG().nextInt(disasters.size())).setRunning(true);
+        disasters.get(player.getRNG().nextInt(disasters.size())).start(player);
     }
 }
