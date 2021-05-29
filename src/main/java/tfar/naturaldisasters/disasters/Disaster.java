@@ -38,16 +38,19 @@ public abstract class Disaster {
         this.running = running;
     }
 
-    public final void start(PlayerEntity player) {
+    public void start(PlayerEntity player) {
+
+        //before starting, kill any lingering boss bars before adding new ones
+        if (isRunning()) removeBossBar(player);
+        createBossBar(player);
         setRunning(true);
         time = 0;
-        createBossBar(player);
     }
 
     public final void createBossBar(PlayerEntity player) {
         ITextComponent display = disasterName;
         CustomServerBossInfoManager customserverbossinfomanager = player.getServer().getCustomBossEvents();
-        ResourceLocation id = new ResourceLocation(NaturalDisasters.MODID,getNextID() +"");
+        ResourceLocation id = new ResourceLocation(NaturalDisasters.MODID, getNextID() + "");
         try {
             customServerBossInfo = customserverbossinfomanager
                     .add(id, TextComponentUtils.func_240645_a_(player.getCommandSource(), display, null, 0));
@@ -71,12 +74,14 @@ public abstract class Disaster {
     }
 
     public final void updateBossBar() {
-        customServerBossInfo.setPercent(1 - ((float)time/getTimeLimit()));
+        customServerBossInfo.setPercent(1 - ((float) time / getTimeLimit()));
     }
 
     public final void removeBossBar(PlayerEntity player) {
-        customServerBossInfo.removeAllPlayers();
-        customServerBossInfo = null;
+        if (customServerBossInfo != null) {
+            customServerBossInfo.removeAllPlayers();
+            customServerBossInfo = null;
+        }
     }
 
     public final void end(PlayerEntity player) {

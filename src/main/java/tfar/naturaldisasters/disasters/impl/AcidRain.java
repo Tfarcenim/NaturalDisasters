@@ -1,5 +1,6 @@
 package tfar.naturaldisasters.disasters.impl;
 
+import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
@@ -18,6 +19,13 @@ public class AcidRain extends Disaster {
     }
 
     @Override
+    public void start(PlayerEntity player) {
+        //set to rain
+        super.start(player);
+        ((ServerWorld) player.world).setWeather(0, 10000000, true, false);
+    }
+
+    @Override
     public void run(PlayerEntity player) {
         super.run(player);
         //remove 10 random blocks in a 40 block radius around the player evey minute
@@ -26,19 +34,27 @@ public class AcidRain extends Disaster {
         if (time % 20 == 0) {
             //summon green particles?
 
-            //set to rain
-            ((ServerWorld)player.world).setWeather(0, 10000000, true, false);
             //poison the player every second
-            player.addPotionEffect(new EffectInstance(Effects.POISON,40,0));
-            if (time % 1200 == 0) {
-                for (int i = 0; i < 10; i++) {
-                    int x = (int) (player.getPosX() + pickRandomNumber(rand, 40));
-                    int z = (int) (player.getPosZ() + pickRandomNumber(rand, 40));
-                    int y = player.world.getHeight(Heightmap.Type.MOTION_BLOCKING, x, z);
-                    player.world.removeBlock(new BlockPos(x, y - 1, z), false);
+            if (isRainedOn(player)) {
+                player.addPotionEffect(new EffectInstance(Effects.POISON, 40, 0));
+                if (time % 600 == 0) {
+                    for (int i = 0; i < 15; i++) {
+                        int x = (int) (player.getPosX() + pickRandomNumber(rand, 40));
+                        int z = (int) (player.getPosZ() + pickRandomNumber(rand, 40));
+                        int y = player.world.getHeight(Heightmap.Type.MOTION_BLOCKING, x, z);
+                        player.world.removeBlock(new BlockPos(x, y - 1, z), false);
+                    }
                 }
             }
         }
         checkTime(player);
+    }
+
+    protected boolean isRainedOn(PlayerEntity player) {
+        if (player.world.isDaytime() && !player.world.isRemote) {
+            BlockPos blockpos = player.getRidingEntity() instanceof BoatEntity ? (new BlockPos(player.getPosX(), (double)Math.round(player.getPosY()), player.getPosZ())).up() : new BlockPos(player.getPosX(), (double)Math.round(player.getPosY()), player.getPosZ());
+            return player.world.canSeeSky(blockpos);
+        }
+        return false;
     }
 }

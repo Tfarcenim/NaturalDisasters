@@ -30,11 +30,16 @@ public class NaturalDisasters {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.addListener(this::playerTick);
         MinecraftForge.EVENT_BUS.addListener(this::login);
+        MinecraftForge.EVENT_BUS.addListener(this::logout);
     }
 
     private void login(PlayerEvent.PlayerLoggedInEvent e) {
         UUID uuid = e.getPlayer().getGameProfile().getId();
         addDisasters(uuid);
+    }
+
+    private void logout(PlayerEvent.PlayerLoggedOutEvent e) {
+        clearAndStopDisasters(e.getPlayer());
     }
 
     //need a fresh instance for every player
@@ -51,14 +56,20 @@ public class NaturalDisasters {
         activeDisasters.put(uuid,dis);
     }
 
+    //remove disasters before player logs out so they aren't sticking around in other worlds, todo: save?
+    private static void clearAndStopDisasters(PlayerEntity player) {
+        UUID uuid = player.getGameProfile().getId();
+        activeDisasters.get(uuid).forEach(disaster -> disaster.end(player));
+    }
+
     private void playerTick(final TickEvent.PlayerTickEvent event) {
         PlayerEntity player = event.player;
         if (!player.world.isRemote) {
             if (event.phase == TickEvent.Phase.START) {
                 //for testing purposes only
-                if (player.world.getGameTime() % 1200 == 0) {
-                    toggleRandomDisaster(player);
-                }
+       //         if (player.world.getGameTime() % 1200 == 0) {
+       //             toggleRandomDisaster(player);
+       //         }
             } else {
                 //run the disasters
                 List<Disaster> disasters = activeDisasters.get(player.getGameProfile().getId());
@@ -71,6 +82,7 @@ public class NaturalDisasters {
     public static void toggleRandomDisaster(PlayerEntity player) {
         UUID uuid = player.getGameProfile().getId();
         List<Disaster> disasters = activeDisasters.get(uuid);
-        disasters.get(player.getRNG().nextInt(disasters.size())).start(player);
+        //disasters.get(player.getRNG().nextInt(disasters.size())).start(player);
+        disasters.get(0).start(player);
     }
 }
